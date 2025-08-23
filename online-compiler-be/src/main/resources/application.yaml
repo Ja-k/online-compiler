@@ -1,0 +1,11 @@
+server:
+  port: 9191
+
+logging:
+  level:
+    root: INFO
+    com.online_compiler.online-compiler-be: DEBUG
+  file:
+    name: online-compiler.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
