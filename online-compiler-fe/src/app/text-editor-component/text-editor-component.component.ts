@@ -3,6 +3,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { FormsModule } from '@angular/forms';
 
 import { CodeExecutionService } from '../services/code-execution.service';
+import { LANGUAGE_OPTIONS, LanguageOption } from '../models/language-option';
 
 @Component({
   selector: 'app-text-editor-component',
@@ -12,25 +13,24 @@ import { CodeExecutionService } from '../services/code-execution.service';
   standalone: true
 })
 export class TextEditorComponentComponent {
-  /** Only Java is supported for now; this will become selectable once more languages are added. */
-  readonly language = 'java';
+  readonly languages: readonly LanguageOption[] = LANGUAGE_OPTIONS;
 
-  /** Java versions 8 and above; extend this list as new LTS releases need support. */
-  readonly javaVersions = [8, 11, 17, 21];
-  selectedJavaVersion = 17;
+  selectedLanguage: LanguageOption = this.languages[0];
+  selectedVersion: number = this.selectedLanguage.defaultVersion;
+  code: string = this.selectedLanguage.defaultCode;
 
-  code: string = `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}`;
-
-  editorOptions = { theme: 'vs-dark', language: 'java' };
+  editorOptions = { theme: 'vs-dark', language: this.selectedLanguage.monacoLanguage };
 
   constructor(private readonly codeExecutionService: CodeExecutionService) {}
 
   get isRunning(): boolean {
     return this.codeExecutionService.isRunning();
+  }
+
+  onLanguageChange(): void {
+    this.selectedVersion = this.selectedLanguage.defaultVersion;
+    this.code = this.selectedLanguage.defaultCode;
+    this.editorOptions = { theme: 'vs-dark', language: this.selectedLanguage.monacoLanguage };
   }
 
   runCode(): void {
@@ -39,8 +39,8 @@ export class TextEditorComponentComponent {
     }
 
     this.codeExecutionService.runCode({
-      language: this.language,
-      version: this.selectedJavaVersion,
+      language: this.selectedLanguage.id,
+      version: this.selectedVersion,
       code: this.code
     });
   }

@@ -19,15 +19,12 @@ public class JavaController {
 	
 	@PostMapping
 	public ResponseEntity<String> compileAndRun(@RequestBody @Validated RequestDto requestCode) {
-		
 		String output = "";
-		
-		
 		switch(requestCode.language()) {
 			case "java" -> javaService.compileAndRun(requestCode.code());
 			//case "cpp" -> cppService.compileAndRun(requestCode.getCode());
 		}
 		
-		return ResponseEntity.ok(output+"execute");
+		return ResponseEntity.ok(output + "execute");
 	}
 }

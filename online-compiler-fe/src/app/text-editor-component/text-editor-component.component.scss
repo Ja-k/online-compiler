@@ -11,7 +11,7 @@
   gap: 8px;
 }
 
-.language-badge {
+.language-select {
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 600;
@@ -21,6 +21,17 @@
   border: 1px solid rgba(34, 211, 238, 0.3);
   border-radius: 4px;
   padding: 5px 10px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 
 .version-select {

@@ -1,9 +1,18 @@
 <div class="editor-toolbar">
   <div class="language-selector">
-    <span class="language-badge">Java</span>
-    <select class="version-select" [(ngModel)]="selectedJavaVersion" [disabled]="isRunning">
-      @for (version of javaVersions; track version) {
-        <option [ngValue]="version">Java {{ version }}</option>
+    <select
+      class="language-select"
+      [(ngModel)]="selectedLanguage"
+      (ngModelChange)="onLanguageChange()"
+      [disabled]="isRunning"
+    >
+      @for (lang of languages; track lang.id) {
+        <option [ngValue]="lang">{{ lang.label }}</option>
+      }
+    </select>
+    <select class="version-select" [(ngModel)]="selectedVersion" [disabled]="isRunning">
+      @for (version of selectedLanguage.versions; track version) {
+        <option [ngValue]="version">{{ selectedLanguage.label }} {{ version }}</option>
       }
     </select>
   </div>
