@@ -1,12 +1,29 @@
-
-<style>
-  .editor-container {
-    height: 50vw;
-    width: 50%;
-  }
-</style>
-<ngx-monaco-editor id="ngx-monaco-editor-id" class="editor-container" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
-<div class="code-output">
-  <h3>Output:</h3>
-  <pre></pre>
+<div class="editor-toolbar">
+  <div class="language-selector">
+    <span class="language-badge">Java</span>
+    <select class="version-select" [(ngModel)]="selectedJavaVersion" [disabled]="isRunning">
+      @for (version of javaVersions; track version) {
+        <option [ngValue]="version">Java {{ version }}</option>
+      }
+    </select>
+  </div>
+  <button
+    type="button"
+    class="run-button"
+    (click)="runCode()"
+    [disabled]="isRunning"
+  >
+    @if (isRunning) {
+      <span class="spinner"></span>
+      Running…
+    } @else {
+      ▶ Run
+    }
+  </button>
 </div>
+<ngx-monaco-editor
+  id="ngx-monaco-editor-id"
+  class="editor-container"
+  [options]="editorOptions"
+  [(ngModel)]="code"
+></ngx-monaco-editor>

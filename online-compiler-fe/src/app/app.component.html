@@ -1,4 +1,19 @@
+<!-- src/app/app.component.html -->
+<div class="app-header">
+  <h1>Online Compiler</h1>
+</div>
+<div class="app-subheader">
+  <p>Write your code in the editor below and see the output on the right.</p>
+</div>
 
-<app-text-editor-component></app-text-editor-component>
+<div class="app-container">
+  <div class="text-editor-column">
+    <app-text-editor-component></app-text-editor-component>
+  </div>
+  <div class="separator"></div>
+  <div class="output-column">
+    <app-output-component></app-output-component>
+  </div>
+</div>
 
-<router-outlet />
+<router-outlet></router-outlet>

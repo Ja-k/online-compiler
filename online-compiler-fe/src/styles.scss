@@ -1,1 +1,34 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --font-display: 'Orbitron', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+
+  --bg-base: #0a0e17;
+  --bg-surface: #131a2b;
+  --bg-surface-alt: #1a2338;
+  --border-color: #2a3550;
+  --text-primary: #e6ecff;
+  --text-muted: #8b9bc4;
+  --accent: #22d3ee;
+  --accent-strong: #38bdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: radial-gradient(circle at 15% 0%, #16213e 0%, var(--bg-base) 45%),
+    linear-gradient(180deg, var(--bg-base) 0%, #0d1220 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}

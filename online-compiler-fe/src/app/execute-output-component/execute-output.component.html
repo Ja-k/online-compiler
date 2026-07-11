@@ -1,0 +1,9 @@
+<div class="output-header">
+  <span class="output-title">Output</span>
+  @if (isRunning) {
+    <span class="status-badge running">Running…</span>
+  } @else if (hasError) {
+    <span class="status-badge error">Error</span>
+  }
+</div>
+<pre class="output-content" [class.error]="hasError">{{ output || placeholder }}</pre>
