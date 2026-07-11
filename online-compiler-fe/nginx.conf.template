@@ -1,0 +1,32 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Resolve the backend hostname at request time (via Docker's embedded DNS)
+    # instead of at config-load time, so nginx still starts even if the
+    # backend container isn't resolvable/up yet.
+    resolver 127.0.0.11 valid=10s;
+    set $backend_upstream "${BACKEND_HOST}:${BACKEND_PORT}";
+
+    # Forward API calls to the backend so the SPA can call same-origin
+    # relative paths (e.g. /v1/run) without hitting CORS.
+    location /v1/ {
+        proxy_pass http://$backend_upstream/v1/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Angular SPA routing: fall back to index.html for unknown paths.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(?:js|css|svg|woff2?|ttf|eot)$ {
+        expires 30d;
+        access_log off;
+    }
+}
