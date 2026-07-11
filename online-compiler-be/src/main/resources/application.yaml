@@ -4,8 +4,8 @@ server:
 logging:
   level:
     root: INFO
-    com.online_compiler.online-compiler-be: DEBUG
+    com.online-compiler.online-compiler-be: DEBUG
   file:
-    name: online-compiler.log
+    name: ../logs/online-compiler.log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
