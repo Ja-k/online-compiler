@@ -10,40 +10,32 @@ import com.online_compiler.online_compiler_be.service.support.DockerCommandRunne
 import com.online_compiler.online_compiler_be.service.support.TempWorkspace;
 
 @Service
-public class JavaService implements LanguageExecutionService {
+public class PythonService implements LanguageExecutionService {
 
-	private static final Set<String> SUPPORTED_VERSIONS = Set.of("8", "11", "17", "21");
-	private static final String DEFAULT_VERSION = "17";
+	private static final Set<String> SUPPORTED_VERSIONS = Set.of("3.8", "3.9", "3.10", "3.11", "3.12", "3.13");
+	private static final String DEFAULT_VERSION = "3.11";
 	private static final long PULL_TIMEOUT_SECONDS = 120;
-	private static final long COMPILE_TIMEOUT_SECONDS = 30;
 	private static final long RUN_TIMEOUT_SECONDS = 10;
 
 	@Override
 	public String getLanguageId() {
-		return "java";
+		return "python";
 	}
 
 	@Override
 	public String run(String code, String version) throws Exception {
-		String image = "eclipse-temurin:" + resolveVersion(version) + "-jdk";
+		String image = "python:" + resolveVersion(version) + "-slim";
 		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
 
-		try (TempWorkspace workspace = TempWorkspace.create("java-code")) {
-			workspace.writeSourceFile("Main.java", code);
+		try (TempWorkspace workspace = TempWorkspace.create("python-code")) {
+			workspace.writeSourceFile("main.py", code);
 			Path dir = workspace.getDirectory();
-
-			DockerCommandRunner.run(List.of(
-					"docker", "run", "--rm",
-					"-v", dir.toAbsolutePath() + ":/app",
-					image,
-					"javac", "/app/Main.java"
-			), COMPILE_TIMEOUT_SECONDS, true);
 
 			return DockerCommandRunner.run(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
 					image,
-					"java", "-cp", "/app", "Main"
+					"python", "/app/main.py"
 			), RUN_TIMEOUT_SECONDS, false);
 		}
 	}

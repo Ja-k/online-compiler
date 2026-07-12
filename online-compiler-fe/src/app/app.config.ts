@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { routes } from './app.routes';
+import { defineTechVibeMonacoTheme } from './monaco-theme';
 
 
 export const appConfig: ApplicationConfig = {
@@ -12,7 +13,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideMonacoEditor({
       baseUrl: '/assets/monaco/vs', // must match angular.json path
-      defaultOptions: { scrollBeyondLastLine: false }
+      defaultOptions: { scrollBeyondLastLine: false },
+      onMonacoLoad: defineTechVibeMonacoTheme
     })
   ]
 };

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CodeExecutionService } from '../services/code-execution.service';
 import { LANGUAGE_OPTIONS, LanguageOption } from '../models/language-option';
+import { TECH_VIBE_THEME_NAME } from '../monaco-theme';
 
 @Component({
   selector: 'app-text-editor-component',
@@ -16,10 +17,10 @@ export class TextEditorComponentComponent {
   readonly languages: readonly LanguageOption[] = LANGUAGE_OPTIONS;
 
   selectedLanguage: LanguageOption = this.languages[0];
-  selectedVersion: number = this.selectedLanguage.defaultVersion;
+  selectedVersion: string = this.selectedLanguage.defaultVersion;
   code: string = this.selectedLanguage.defaultCode;
 
-  editorOptions = { theme: 'vs-dark', language: this.selectedLanguage.monacoLanguage };
+  editorOptions = { theme: TECH_VIBE_THEME_NAME, language: this.selectedLanguage.monacoLanguage };
 
   constructor(private readonly codeExecutionService: CodeExecutionService) {}
 
@@ -30,7 +31,7 @@ export class TextEditorComponentComponent {
   onLanguageChange(): void {
     this.selectedVersion = this.selectedLanguage.defaultVersion;
     this.code = this.selectedLanguage.defaultCode;
-    this.editorOptions = { theme: 'vs-dark', language: this.selectedLanguage.monacoLanguage };
+    this.editorOptions = { theme: TECH_VIBE_THEME_NAME, language: this.selectedLanguage.monacoLanguage };
   }
 
   runCode(): void {

@@ -10,45 +10,46 @@ import com.online_compiler.online_compiler_be.service.support.DockerCommandRunne
 import com.online_compiler.online_compiler_be.service.support.TempWorkspace;
 
 @Service
-public class JavaService implements LanguageExecutionService {
+public class CppService implements LanguageExecutionService {
 
-	private static final Set<String> SUPPORTED_VERSIONS = Set.of("8", "11", "17", "21");
-	private static final String DEFAULT_VERSION = "17";
+	/** A single modern GCC image is used for all standards; the standard itself is a compile flag. */
+	private static final String IMAGE = "gcc:13.2.0";
+	private static final Set<String> SUPPORTED_STANDARDS = Set.of("11", "14", "17", "20", "23");
+	private static final String DEFAULT_STANDARD = "17";
 	private static final long PULL_TIMEOUT_SECONDS = 120;
 	private static final long COMPILE_TIMEOUT_SECONDS = 30;
 	private static final long RUN_TIMEOUT_SECONDS = 10;
 
 	@Override
 	public String getLanguageId() {
-		return "java";
+		return "cpp";
 	}
 
 	@Override
 	public String run(String code, String version) throws Exception {
-		String image = "eclipse-temurin:" + resolveVersion(version) + "-jdk";
-		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
+		DockerCommandRunner.ensureImagePulled(IMAGE, PULL_TIMEOUT_SECONDS);
 
-		try (TempWorkspace workspace = TempWorkspace.create("java-code")) {
-			workspace.writeSourceFile("Main.java", code);
+		try (TempWorkspace workspace = TempWorkspace.create("cpp-code")) {
+			workspace.writeSourceFile("main.cpp", code);
 			Path dir = workspace.getDirectory();
 
 			DockerCommandRunner.run(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
-					image,
-					"javac", "/app/Main.java"
+					IMAGE,
+					"g++", "-std=c++" + resolveStandard(version), "-O2", "-o", "/app/main", "/app/main.cpp"
 			), COMPILE_TIMEOUT_SECONDS, true);
 
 			return DockerCommandRunner.run(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
-					image,
-					"java", "-cp", "/app", "Main"
+					IMAGE,
+					"/app/main"
 			), RUN_TIMEOUT_SECONDS, false);
 		}
 	}
 
-	private String resolveVersion(String version) {
-		return SUPPORTED_VERSIONS.contains(version) ? version : DEFAULT_VERSION;
+	private String resolveStandard(String version) {
+		return SUPPORTED_STANDARDS.contains(version) ? version : DEFAULT_STANDARD;
 	}
 }

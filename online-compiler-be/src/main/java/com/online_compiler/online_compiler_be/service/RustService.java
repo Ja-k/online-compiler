@@ -10,45 +10,46 @@ import com.online_compiler.online_compiler_be.service.support.DockerCommandRunne
 import com.online_compiler.online_compiler_be.service.support.TempWorkspace;
 
 @Service
-public class JavaService implements LanguageExecutionService {
+public class RustService implements LanguageExecutionService {
 
-	private static final Set<String> SUPPORTED_VERSIONS = Set.of("8", "11", "17", "21");
-	private static final String DEFAULT_VERSION = "17";
+	/** A single modern Rust toolchain image is used for all editions; the edition is a compile flag. */
+	private static final String IMAGE = "rust:1.82-slim";
+	private static final Set<String> SUPPORTED_EDITIONS = Set.of("2015", "2018", "2021", "2024");
+	private static final String DEFAULT_EDITION = "2021";
 	private static final long PULL_TIMEOUT_SECONDS = 120;
 	private static final long COMPILE_TIMEOUT_SECONDS = 30;
 	private static final long RUN_TIMEOUT_SECONDS = 10;
 
 	@Override
 	public String getLanguageId() {
-		return "java";
+		return "rust";
 	}
 
 	@Override
 	public String run(String code, String version) throws Exception {
-		String image = "eclipse-temurin:" + resolveVersion(version) + "-jdk";
-		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
+		DockerCommandRunner.ensureImagePulled(IMAGE, PULL_TIMEOUT_SECONDS);
 
-		try (TempWorkspace workspace = TempWorkspace.create("java-code")) {
-			workspace.writeSourceFile("Main.java", code);
+		try (TempWorkspace workspace = TempWorkspace.create("rust-code")) {
+			workspace.writeSourceFile("main.rs", code);
 			Path dir = workspace.getDirectory();
 
 			DockerCommandRunner.run(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
-					image,
-					"javac", "/app/Main.java"
+					IMAGE,
+					"rustc", "--edition=" + resolveEdition(version), "-O", "-o", "/app/main", "/app/main.rs"
 			), COMPILE_TIMEOUT_SECONDS, true);
 
 			return DockerCommandRunner.run(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
-					image,
-					"java", "-cp", "/app", "Main"
+					IMAGE,
+					"/app/main"
 			), RUN_TIMEOUT_SECONDS, false);
 		}
 	}
 
-	private String resolveVersion(String version) {
-		return SUPPORTED_VERSIONS.contains(version) ? version : DEFAULT_VERSION;
+	private String resolveEdition(String version) {
+		return SUPPORTED_EDITIONS.contains(version) ? version : DEFAULT_EDITION;
 	}
 }

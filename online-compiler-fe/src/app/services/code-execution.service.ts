@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 
 export interface RunCodeRequest {
   language: string;
-  version: number;
+  version: string;
   code: string;
 }
 

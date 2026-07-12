@@ -9,3 +9,8 @@ logging:
     name: ../logs/online-compiler.log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+
+spring:
+  application:
+    name: online-compiler-be
+    
