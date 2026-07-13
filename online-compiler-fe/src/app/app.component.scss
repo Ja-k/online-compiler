@@ -60,3 +60,32 @@
     border-radius: 6px;
   }
 }
+
+@media (max-width: 860px) {
+  .app-header {
+    padding-top: 20px;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .app-subheader {
+    padding: 0 16px;
+    font-size: 0.85rem;
+  }
+
+  .app-container {
+    grid-template-columns: 1fr; /* Stack editor above output instead of squeezing them side by side */
+    padding: 0 12px 16px;
+    gap: 12px;
+
+    & > * {
+      padding: 10px;
+    }
+
+    .separator {
+      display: none;
+    }
+  }
+}

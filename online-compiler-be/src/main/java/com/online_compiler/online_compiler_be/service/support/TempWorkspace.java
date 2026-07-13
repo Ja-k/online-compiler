@@ -40,10 +40,12 @@ public final class TempWorkspace implements AutoCloseable {
 					Files.deleteIfExists(path);
 				} catch (IOException ignored) {
 					// best-effort cleanup
+					ignored.printStackTrace();
 				}
 			});
 		} catch (IOException ignored) {
 			// best-effort cleanup
+			ignored.printStackTrace();
 		}
 	}
 }

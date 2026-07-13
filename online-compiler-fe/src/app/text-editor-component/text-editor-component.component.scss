@@ -2,12 +2,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 10px;
 }
 
 .language-selector {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -103,5 +106,32 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 860px) {
+  .editor-container {
+    height: 45vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .language-selector {
+    justify-content: space-between;
+  }
+
+  .language-select,
+  .version-select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .run-button {
+    justify-content: center;
   }
 }
