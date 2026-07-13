@@ -24,7 +24,8 @@ public class PythonService implements LanguageExecutionService {
 
 	@Override
 	public String run(String code, String version) throws Exception {
-		String image = "python:" + resolveVersion(version) + "-slim";
+		// Alpine variant: roughly half the size of "-slim", plenty for running plain scripts.
+		String image = "python:" + resolveVersion(version) + "-alpine";
 		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
 
 		try (TempWorkspace workspace = TempWorkspace.create("python-code")) {

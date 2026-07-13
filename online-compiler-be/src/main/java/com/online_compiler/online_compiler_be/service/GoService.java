@@ -25,7 +25,8 @@ public class GoService implements LanguageExecutionService {
 
 	@Override
 	public String run(String code, String version) throws Exception {
-		String image = "golang:" + resolveVersion(version);
+		// Alpine variant: roughly a third the size of the default Debian-based image.
+		String image = "golang:" + resolveVersion(version) + "-alpine";
 		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
 
 		try (TempWorkspace workspace = TempWorkspace.create("go-code")) {

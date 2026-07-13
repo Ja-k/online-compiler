@@ -12,7 +12,12 @@ import com.online_compiler.online_compiler_be.service.support.TempWorkspace;
 @Service
 public class RustService implements LanguageExecutionService {
 
-	/** A single modern Rust toolchain image is used for all editions; the edition is a compile flag. */
+	/**
+	 * A single modern Rust toolchain image is used for all editions; the edition is a compile flag.
+	 * The "-alpine" variant of this image is essentially the same size as "-slim" (the rustc/cargo
+	 * toolchain itself dominates the size either way), so the more common glibc-based slim image is
+	 * used to avoid any musl-specific linking surprises for no size benefit.
+	 */
 	private static final String IMAGE = "rust:1.82-slim";
 	private static final Set<String> SUPPORTED_EDITIONS = Set.of("2015", "2018", "2021", "2024");
 	private static final String DEFAULT_EDITION = "2021";

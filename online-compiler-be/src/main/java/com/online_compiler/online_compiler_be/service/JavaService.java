@@ -25,6 +25,9 @@ public class JavaService implements LanguageExecutionService {
 
 	@Override
 	public String run(String code, String version) throws Exception {
+		// The "-jdk-alpine" variant is smaller but only publishes amd64 manifests for most
+		// versions (no arm64), which would break on Apple Silicon / arm64 hosts. The plain
+		// "-jdk" tag is multi-arch, so it's used despite being the larger option.
 		String image = "eclipse-temurin:" + resolveVersion(version) + "-jdk";
 		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
 

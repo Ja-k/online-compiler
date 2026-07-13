@@ -12,7 +12,11 @@ import com.online_compiler.online_compiler_be.service.support.TempWorkspace;
 @Service
 public class CppService implements LanguageExecutionService {
 
-	/** A single modern GCC image is used for all standards; the standard itself is a compile flag. */
+	/**
+	 * A single modern GCC image is used for all standards; the standard itself is a compile flag.
+	 * No official Alpine variant of this image exists, so the Debian-based tag (~500MB) is already
+	 * the lightest trustworthy option without maintaining a custom image.
+	 */
 	private static final String IMAGE = "gcc:13.2.0";
 	private static final Set<String> SUPPORTED_STANDARDS = Set.of("11", "14", "17", "20", "23");
 	private static final String DEFAULT_STANDARD = "17";
