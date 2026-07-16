@@ -1,0 +1,84 @@
+<div class="auth-page">
+  @if (registeredEmail()) {
+    <div class="auth-card">
+      <h2>Check your email</h2>
+      <p class="auth-subtitle">
+        We've sent a verification link to <strong>{{ registeredEmail() }}</strong>. Click it to activate your
+        account, then come back here to log in.
+      </p>
+
+      @if (resendMessage()) {
+        <p class="auth-info">{{ resendMessage() }}</p>
+      }
+
+      <button type="button" class="auth-submit auth-submit--secondary" [disabled]="isResending()" (click)="onResendClick()">
+        {{ isResending() ? 'Resending…' : "Didn't get it? Resend verification email" }}
+      </button>
+
+      <p class="auth-switch">
+        Already verified? <a routerLink="/login">Login</a>
+      </p>
+    </div>
+  } @else {
+  <form class="auth-card" (ngSubmit)="onSubmit()">
+    <h2>Create an account</h2>
+    <p class="auth-subtitle">Register to save and revisit your code.</p>
+
+    <label class="auth-label" for="register-username">Username</label>
+    <input
+      id="register-username"
+      class="auth-input"
+      type="text"
+      name="username"
+      [(ngModel)]="username"
+      autocomplete="username"
+      [disabled]="isSubmitting()"
+    />
+
+    <label class="auth-label" for="register-email">Email</label>
+    <input
+      id="register-email"
+      class="auth-input"
+      type="email"
+      name="email"
+      [(ngModel)]="email"
+      autocomplete="email"
+      [disabled]="isSubmitting()"
+    />
+
+    <label class="auth-label" for="register-password">Password</label>
+    <input
+      id="register-password"
+      class="auth-input"
+      type="password"
+      name="password"
+      [(ngModel)]="password"
+      autocomplete="new-password"
+      [disabled]="isSubmitting()"
+    />
+
+    <label class="auth-label" for="register-confirm-password">Confirm password</label>
+    <input
+      id="register-confirm-password"
+      class="auth-input"
+      type="password"
+      name="confirmPassword"
+      [(ngModel)]="confirmPassword"
+      autocomplete="new-password"
+      [disabled]="isSubmitting()"
+    />
+
+    @if (errorMessage()) {
+      <p class="auth-error">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" class="auth-submit" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'Creating account…' : 'Register' }}
+    </button>
+
+    <p class="auth-switch">
+      Already have an account? <a routerLink="/login">Login</a>
+    </p>
+  </form>
+  }
+</div>

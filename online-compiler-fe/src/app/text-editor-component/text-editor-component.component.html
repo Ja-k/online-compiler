@@ -3,7 +3,6 @@
     <select
       class="language-select"
       [(ngModel)]="selectedLanguage"
-      (ngModelChange)="onLanguageChange()"
       [disabled]="isRunning"
     >
       @for (lang of languages; track lang.id) {
@@ -15,20 +14,28 @@
         <option [ngValue]="version">{{ selectedLanguage.label }} {{ version }}</option>
       }
     </select>
-  </div>
-  <button
-    type="button"
-    class="run-button"
-    (click)="runCode()"
-    [disabled]="isRunning"
-  >
-    @if (isRunning) {
-      <span class="spinner"></span>
-      Running…
-    } @else {
-      ▶ Run
+    @if (currentFileName) {
+      <span class="current-file-badge" title="Currently open file">📄 {{ currentFileName }}</span>
     }
-  </button>
+  </div>
+  <div class="toolbar-actions">
+    <button type="button" class="save-button" (click)="onSaveClick()" [disabled]="isRunning">
+      💾 Save
+    </button>
+    <button
+      type="button"
+      class="run-button"
+      (click)="runCode()"
+      [disabled]="isRunning"
+    >
+      @if (isRunning) {
+        <span class="spinner"></span>
+        Running…
+      } @else {
+        ▶ Run
+      }
+    </button>
+  </div>
 </div>
 <ngx-monaco-editor
   id="ngx-monaco-editor-id"
@@ -36,3 +43,32 @@
   [options]="editorOptions"
   [(ngModel)]="code"
 ></ngx-monaco-editor>
+
+@if (isSaveDialogOpen()) {
+  <div class="save-dialog-backdrop" (click)="closeSaveDialog()">
+    <div class="save-dialog" (click)="$event.stopPropagation()">
+      <h3>Save file</h3>
+      <label class="save-dialog-label" for="save-filename-input">File name</label>
+      <input
+        id="save-filename-input"
+        class="save-dialog-input"
+        type="text"
+        [(ngModel)]="saveFilenameInput"
+        placeholder="e.g. hello-world.java"
+        (keyup.enter)="confirmSave()"
+        autofocus
+      />
+      @if (saveError()) {
+        <p class="save-dialog-error">{{ saveError() }}</p>
+      }
+      <div class="save-dialog-actions">
+        <button type="button" class="save-dialog-cancel" (click)="closeSaveDialog()" [disabled]="isSaving()">
+          Cancel
+        </button>
+        <button type="button" class="save-dialog-confirm" (click)="confirmSave()" [disabled]="isSaving()">
+          {{ isSaving() ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,19 @@
+<div
+  class="app-container"
+  [class.is-dragging]="isDragging"
+  [style.--editor-width]="editorWidthPercent() + '%'"
+  #appContainer
+>
+  <div class="text-editor-column">
+    <app-text-editor-component></app-text-editor-component>
+  </div>
+  <div
+    class="separator"
+    (pointerdown)="onSeparatorPointerDown($event)"
+    (dblclick)="resetSplit()"
+    title="Drag to resize, double-click to reset"
+  ></div>
+  <div class="output-column">
+    <app-output-component></app-output-component>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+<div class="auth-page">
+  <form class="auth-card" (ngSubmit)="onSubmit()">
+    <h2>Welcome back</h2>
+    <p class="auth-subtitle">Log in to access your saved files.</p>
+
+    <label class="auth-label" for="login-username">Username</label>
+    <input
+      id="login-username"
+      class="auth-input"
+      type="text"
+      name="username"
+      [(ngModel)]="username"
+      autocomplete="username"
+      [disabled]="isSubmitting()"
+    />
+
+    <label class="auth-label" for="login-password">Password</label>
+    <input
+      id="login-password"
+      class="auth-input"
+      type="password"
+      name="password"
+      [(ngModel)]="password"
+      autocomplete="current-password"
+      [disabled]="isSubmitting()"
+    />
+
+    @if (errorMessage()) {
+      <p class="auth-error">{{ errorMessage() }}</p>
+    }
+
+    @if (resendMessage()) {
+      <p class="auth-info">{{ resendMessage() }}</p>
+    }
+
+    <button type="submit" class="auth-submit" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'Logging in…' : 'Login' }}
+    </button>
+
+    @if (needsVerification()) {
+      <button
+        type="button"
+        class="auth-submit auth-submit--secondary"
+        [disabled]="isResending()"
+        (click)="onResendClick()"
+      >
+        {{ isResending() ? 'Resending…' : 'Resend verification email' }}
+      </button>
+    }
+
+    <p class="auth-switch">
+      Don't have an account? <a routerLink="/register">Register</a>
+    </p>
+  </form>
+</div>

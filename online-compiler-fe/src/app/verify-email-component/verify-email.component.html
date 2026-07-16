@@ -1,0 +1,20 @@
+<div class="auth-page">
+  <div class="auth-card">
+    @switch (status()) {
+      @case ('verifying') {
+        <h2>Verifying…</h2>
+        <p class="auth-subtitle">{{ message() }}</p>
+      }
+      @case ('success') {
+        <h2>Email verified</h2>
+        <p class="auth-subtitle">{{ message() }}</p>
+        <a class="auth-submit auth-link-button" routerLink="/login">Go to login</a>
+      }
+      @case ('error') {
+        <h2>Verification failed</h2>
+        <p class="auth-error">{{ message() }}</p>
+        <a class="auth-submit auth-link-button" routerLink="/register">Back to registration</a>
+      }
+    }
+  </div>
+</div>

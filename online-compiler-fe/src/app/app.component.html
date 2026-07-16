@@ -1,19 +1,37 @@
 <!-- src/app/app.component.html -->
 <div class="app-header">
+  @if (authService.isAuthenticated()) {
+    <button
+      type="button"
+      class="hamburger-button"
+      (click)="onHamburgerClick()"
+      aria-label="Open my files"
+      title="My files"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  } @else {
+    <span class="hamburger-placeholder"></span>
+  }
+
   <h1>Online Compiler</h1>
+
+  <div class="auth-controls">
+    @if (authService.isAuthenticated()) {
+      <span class="username">{{ authService.currentUser()?.username }}</span>
+      <button type="button" class="auth-link logout-link" (click)="onLogoutClick()">Logout</button>
+    } @else {
+      <a class="auth-link" routerLink="/login">Login</a>
+      <a class="auth-link auth-link--primary" routerLink="/register">Register</a>
+    }
+  </div>
 </div>
 <div class="app-subheader">
   <p>Write your code in the editor below and see the output on the right.</p>
 </div>
 
-<div class="app-container">
-  <div class="text-editor-column">
-    <app-text-editor-component></app-text-editor-component>
-  </div>
-  <div class="separator"></div>
-  <div class="output-column">
-    <app-output-component></app-output-component>
-  </div>
-</div>
-
 <router-outlet></router-outlet>
+
+<app-files-drawer></app-files-drawer>

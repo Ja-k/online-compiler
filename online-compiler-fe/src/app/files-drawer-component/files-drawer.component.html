@@ -1,0 +1,48 @@
+@if (savedFilesService.isDrawerOpen()) {
+  <div class="drawer-backdrop" (click)="close()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <h3>My Files</h3>
+        <button type="button" class="drawer-close" (click)="close()" aria-label="Close">✕</button>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="drawer-error">{{ errorMessage() }}</p>
+      }
+
+      @if (savedFilesService.isLoading()) {
+        <p class="drawer-status">Loading…</p>
+      } @else if (savedFilesService.files().length === 0) {
+        <p class="drawer-status">You haven't saved any files yet.</p>
+      } @else {
+        <ul class="file-list">
+          @for (file of savedFilesService.files(); track file.id) {
+            <li class="file-item" (click)="openFile(file)">
+              <div class="file-info">
+                <span class="file-name">{{ file.filename }}</span>
+                <span class="file-meta">{{ file.language }} · {{ file.version }}</span>
+              </div>
+
+              @if (pendingDeleteId() === file.id) {
+                <div class="file-delete-confirm">
+                  <button type="button" class="confirm-yes" (click)="confirmDelete(file, $event)">Delete</button>
+                  <button type="button" class="confirm-no" (click)="cancelDelete($event)">Cancel</button>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  class="file-delete"
+                  (click)="requestDelete(file, $event)"
+                  aria-label="Delete file"
+                  title="Delete file"
+                >
+                  🗑
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+  </div>
+}

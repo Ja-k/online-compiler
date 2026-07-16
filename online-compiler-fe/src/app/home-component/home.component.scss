@@ -1,0 +1,74 @@
+.app-container {
+  display: grid;
+  /* --editor-width is set from TS as the user drags the separator; the output
+     column is 1fr so it simply absorbs whatever space is left over. */
+  grid-template-columns: var(--editor-width, 50%) auto 1fr;
+  gap: 10px;
+  padding: 0 20px 24px;
+
+  &.is-dragging {
+    cursor: col-resize;
+  }
+
+  & > * {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.03), 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .text-editor-column,
+  .output-column {
+    grid-column: span 1;
+    min-width: 0;
+    /* While dragging, prevent the editor/output panels from swallowing
+       pointer events so the resize gesture stays smooth. */
+    pointer-events: auto;
+  }
+
+  &.is-dragging .text-editor-column,
+  &.is-dragging .output-column {
+    pointer-events: none;
+  }
+
+  .separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: col-resize;
+    width: 10px;
+    padding: 0;
+    user-select: none;
+    touch-action: none;
+    background-color: var(--bg-surface-alt);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(34, 211, 238, 0.25);
+    }
+  }
+
+  &.is-dragging .separator {
+    background-color: var(--accent);
+  }
+}
+
+@media (max-width: 860px) {
+  .app-container {
+    grid-template-columns: 1fr; /* Stack editor above output instead of squeezing them side by side */
+    padding: 0 12px 16px;
+    gap: 12px;
+
+    & > * {
+      padding: 10px;
+    }
+
+    .separator {
+      display: none;
+    }
+  }
+}
