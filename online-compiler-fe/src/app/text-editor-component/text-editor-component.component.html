@@ -15,10 +15,25 @@
       }
     </select>
     @if (currentFileName) {
-      <span class="current-file-badge" title="Currently open file">📄 {{ currentFileName }}</span>
+      <span class="current-file-badge" title="Currently open file">
+        <span class="current-file-name">📄 {{ currentFileName }}</span>
+        <button
+          type="button"
+          class="current-file-close"
+          (click)="closeOpenFile()"
+          [disabled]="isRunning"
+          aria-label="Close file"
+          title="Close file and reset editor"
+        >
+          ×
+        </button>
+      </span>
     }
   </div>
   <div class="toolbar-actions">
+    <button type="button" class="download-button" (click)="onDownloadClick()" title="Download current code as a file">
+      ⬇ Download
+    </button>
     <button type="button" class="save-button" (click)="onSaveClick()" [disabled]="isRunning">
       💾 Save
     </button>
@@ -44,10 +59,73 @@
   [(ngModel)]="code"
 ></ngx-monaco-editor>
 
+@if (isLoginDialogOpen()) {
+  <div class="modal-backdrop" (click)="closeLoginDialog()">
+    <div class="modal-dialog login-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="login-dialog-title">
+      <div class="modal-header">
+        <h3 id="login-dialog-title">Log in to save</h3>
+        <button type="button" class="modal-close" (click)="closeLoginDialog()" aria-label="Close">×</button>
+      </div>
+      <p class="login-dialog-subtitle">You need an account to save files. Log in below, or close this window to keep editing.</p>
+
+      <label class="save-dialog-label" for="login-dialog-username">Username</label>
+      <input
+        id="login-dialog-username"
+        class="save-dialog-input"
+        type="text"
+        [(ngModel)]="loginUsername"
+        autocomplete="username"
+        [disabled]="isLoggingIn()"
+      />
+
+      <label class="save-dialog-label" for="login-dialog-password">Password</label>
+      <input
+        id="login-dialog-password"
+        class="save-dialog-input"
+        type="password"
+        [(ngModel)]="loginPassword"
+        autocomplete="current-password"
+        [disabled]="isLoggingIn()"
+        (keyup.enter)="onLoginSubmit()"
+      />
+
+      @if (loginError()) {
+        <p class="save-dialog-error">{{ loginError() }}</p>
+      }
+      @if (resendMessage()) {
+        <p class="login-dialog-info">{{ resendMessage() }}</p>
+      }
+
+      <button type="button" class="save-dialog-confirm login-dialog-submit" (click)="onLoginSubmit()" [disabled]="isLoggingIn()">
+        {{ isLoggingIn() ? 'Logging in…' : 'Login' }}
+      </button>
+
+      @if (needsVerification()) {
+        <button
+          type="button"
+          class="save-dialog-cancel login-dialog-secondary"
+          [disabled]="isResending()"
+          (click)="onResendVerificationClick()"
+        >
+          {{ isResending() ? 'Resending…' : 'Resend verification email' }}
+        </button>
+      }
+
+      <p class="login-dialog-switch">
+        Don't have an account?
+        <button type="button" class="login-dialog-link" (click)="goToRegister()">Register</button>
+      </p>
+    </div>
+  </div>
+}
+
 @if (isSaveDialogOpen()) {
-  <div class="save-dialog-backdrop" (click)="closeSaveDialog()">
-    <div class="save-dialog" (click)="$event.stopPropagation()">
-      <h3>Save file</h3>
+  <div class="modal-backdrop" (click)="closeSaveDialog()">
+    <div class="modal-dialog save-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="save-dialog-title">
+      <div class="modal-header">
+        <h3 id="save-dialog-title">Save file</h3>
+        <button type="button" class="modal-close" (click)="closeSaveDialog()" aria-label="Close">×</button>
+      </div>
       <label class="save-dialog-label" for="save-filename-input">File name</label>
       <input
         id="save-filename-input"
@@ -58,6 +136,17 @@
         (keyup.enter)="confirmSave()"
         autofocus
       />
+      <label class="save-dialog-label" for="save-folder-select">Folder</label>
+      <select
+        id="save-folder-select"
+        class="save-dialog-input save-dialog-select"
+        [(ngModel)]="saveFolderIdValue"
+      >
+        <option value="">No folder (root)</option>
+        @for (folder of foldersService.folders(); track folder.id) {
+          <option [value]="folder.id">{{ folder.name }}</option>
+        }
+      </select>
       @if (saveError()) {
         <p class="save-dialog-error">{{ saveError() }}</p>
       }

@@ -1,6 +1,7 @@
 package com.online_compiler.online_compiler_be.service;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,29 +26,48 @@ public class JavaService implements LanguageExecutionService {
 
 	@Override
 	public String run(String code, String version) throws Exception {
+		String resolvedVersion = resolveVersion(version);
 		// The "-jdk-alpine" variant is smaller but only publishes amd64 manifests for most
 		// versions (no arm64), which would break on Apple Silicon / arm64 hosts. The plain
 		// "-jdk" tag is multi-arch, so it's used despite being the larger option.
-		String image = "eclipse-temurin:" + resolveVersion(version) + "-jdk";
+		String image = "eclipse-temurin:" + resolvedVersion + "-jdk";
 		DockerCommandRunner.ensureImagePulled(image, PULL_TIMEOUT_SECONDS);
+
+		// JEP 445 (unnamed classes / instance main methods, e.g. a bare
+		// `void main() { ... }` with no enclosing class) is a preview feature
+		// in JDK 21, so both compiling and running it need --enable-preview,
+		// pinned to a matching --release. Harmless to add even for code that
+		// still uses a traditional `public class Main { public static void
+		// main(...) }`.
+		boolean needsPreview = "21".equals(resolvedVersion);
 
 		try (TempWorkspace workspace = TempWorkspace.create("java-code")) {
 			workspace.writeSourceFile("Main.java", code);
 			Path dir = workspace.getDirectory();
 
-			DockerCommandRunner.run(List.of(
+			List<String> compileCommand = new ArrayList<>(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
 					image,
-					"javac", "/app/Main.java"
-			), COMPILE_TIMEOUT_SECONDS, true);
+					"javac"
+			));
+			if (needsPreview) {
+				compileCommand.addAll(List.of("--release", resolvedVersion, "--enable-preview"));
+			}
+			compileCommand.add("/app/Main.java");
+			DockerCommandRunner.run(compileCommand, COMPILE_TIMEOUT_SECONDS, true);
 
-			return DockerCommandRunner.run(List.of(
+			List<String> runCommand = new ArrayList<>(List.of(
 					"docker", "run", "--rm",
 					"-v", dir.toAbsolutePath() + ":/app",
 					image,
-					"java", "-cp", "/app", "Main"
-			), RUN_TIMEOUT_SECONDS, false);
+					"java"
+			));
+			if (needsPreview) {
+				runCommand.add("--enable-preview");
+			}
+			runCommand.addAll(List.of("-cp", "/app", "Main"));
+			return DockerCommandRunner.run(runCommand, RUN_TIMEOUT_SECONDS, false);
 		}
 	}
 

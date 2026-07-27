@@ -7,5 +7,7 @@ public record SavedFileRequestDto(
 		@NotBlank @Size(max = 120) String filename,
 		@NotBlank String language,
 		@NotBlank String version,
-		@NotBlank String code) {
+		@NotBlank String code,
+		/** Null (or omitted) places the file at the root; otherwise the owning folder id. */
+		Long folderId) {
 }

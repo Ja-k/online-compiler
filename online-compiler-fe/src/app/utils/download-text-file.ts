@@ -1,0 +1,19 @@
+/**
+ * Triggers a browser "Save As" download of `content` as a plain text file
+ * named `filename`, entirely client-side (no server round trip needed once
+ * the content is in hand).
+ */
+export function downloadTextFile(filename: string, content: string): void {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 
 import { AuthService } from './services/auth.service';
+import { FoldersService } from './services/folders.service';
 import { SavedFilesService } from './services/saved-files.service';
 import { FilesDrawerComponent } from './files-drawer-component/files-drawer.component';
 
@@ -17,6 +18,7 @@ export class AppComponent implements OnInit {
   constructor(
     protected readonly authService: AuthService,
     protected readonly savedFilesService: SavedFilesService,
+    private readonly foldersService: FoldersService,
     private readonly router: Router
   ) {}
 
@@ -26,16 +28,19 @@ export class AppComponent implements OnInit {
 
   onHamburgerClick(): void {
     this.savedFilesService.openDrawer();
+    this.foldersService.refresh();
   }
 
   onLogoutClick(): void {
     this.authService.logout().subscribe({
       complete: () => {
         this.savedFilesService.clear();
+        this.foldersService.clear();
         this.router.navigate(['/']);
       },
       error: () => {
         this.savedFilesService.clear();
+        this.foldersService.clear();
         this.router.navigate(['/']);
       }
     });

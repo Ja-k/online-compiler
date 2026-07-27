@@ -6,38 +6,135 @@
         <button type="button" class="drawer-close" (click)="close()" aria-label="Close">✕</button>
       </div>
 
+      <div class="drawer-toolbar">
+        @if (currentFolder(); as folder) {
+          <button type="button" class="drawer-back" (click)="goToRoot()" title="Back to all files">
+            ← {{ folder.name }}
+          </button>
+        } @else {
+          <span class="drawer-location">All files</span>
+          <button type="button" class="drawer-new-folder" (click)="startCreateFolder()">+ Folder</button>
+        }
+      </div>
+
       @if (errorMessage()) {
         <p class="drawer-error">{{ errorMessage() }}</p>
       }
 
-      @if (savedFilesService.isLoading()) {
+      @if (isCreatingFolder()) {
+        <div class="folder-create-row">
+          <input
+            class="folder-name-input"
+            type="text"
+            [(ngModel)]="newFolderName"
+            placeholder="Folder name"
+            (keyup.enter)="confirmCreateFolder()"
+            autofocus
+          />
+          <button type="button" class="confirm-yes" (click)="confirmCreateFolder()">Create</button>
+          <button type="button" class="confirm-no" (click)="cancelCreateFolder()">Cancel</button>
+        </div>
+      }
+
+      @if (savedFilesService.isLoading() || foldersService.isLoading()) {
         <p class="drawer-status">Loading…</p>
-      } @else if (savedFilesService.files().length === 0) {
-        <p class="drawer-status">You haven't saved any files yet.</p>
+      } @else if (isEmpty() && !isCreatingFolder()) {
+        <p class="drawer-status">
+          @if (currentFolderId() === null) {
+            No files or folders yet. Save a file or create a folder to get started.
+          } @else {
+            This folder is empty.
+          }
+        </p>
       } @else {
         <ul class="file-list">
-          @for (file of savedFilesService.files(); track file.id) {
+          @for (folder of visibleFolders(); track folder.id) {
+            <li class="file-item folder-item" (click)="openFolder(folder)">
+              @if (renamingFolderId() === folder.id) {
+                <div class="folder-rename-row" (click)="$event.stopPropagation()">
+                  <input
+                    class="folder-name-input"
+                    type="text"
+                    [(ngModel)]="renameFolderInput"
+                    (keyup.enter)="confirmRenameFolder(folder, $event)"
+                    autofocus
+                  />
+                  <button type="button" class="confirm-yes" (click)="confirmRenameFolder(folder, $event)">Save</button>
+                  <button type="button" class="confirm-no" (click)="cancelRenameFolder($event)">Cancel</button>
+                </div>
+              } @else {
+                <div class="file-info">
+                  <span class="file-name">📁 {{ folder.name }}</span>
+                  <span class="file-meta">Folder</span>
+                </div>
+
+                @if (pendingDeleteFolderId() === folder.id) {
+                  <div class="file-delete-confirm" (click)="$event.stopPropagation()">
+                    <button type="button" class="confirm-yes" (click)="confirmDeleteFolder(folder, $event)">
+                      Delete all
+                    </button>
+                    <button type="button" class="confirm-no" (click)="cancelDeleteFolder($event)">Cancel</button>
+                  </div>
+                } @else {
+                  <div class="item-actions" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="item-action"
+                      (click)="startRenameFolder(folder, $event)"
+                      aria-label="Rename folder"
+                      title="Rename folder"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      class="file-delete"
+                      (click)="requestDeleteFolder(folder, $event)"
+                      aria-label="Delete folder"
+                      title="Delete folder and its files"
+                    >
+                      🗑
+                    </button>
+                  </div>
+                }
+              }
+            </li>
+          }
+
+          @for (file of visibleFiles(); track file.id) {
             <li class="file-item" (click)="openFile(file)">
               <div class="file-info">
                 <span class="file-name">{{ file.filename }}</span>
                 <span class="file-meta">{{ file.language }} · {{ file.version }}</span>
               </div>
 
-              @if (pendingDeleteId() === file.id) {
+              @if (pendingDeleteFileId() === file.id) {
                 <div class="file-delete-confirm">
-                  <button type="button" class="confirm-yes" (click)="confirmDelete(file, $event)">Delete</button>
-                  <button type="button" class="confirm-no" (click)="cancelDelete($event)">Cancel</button>
+                  <button type="button" class="confirm-yes" (click)="confirmDeleteFile(file, $event)">Delete</button>
+                  <button type="button" class="confirm-no" (click)="cancelDeleteFile($event)">Cancel</button>
                 </div>
               } @else {
-                <button
-                  type="button"
-                  class="file-delete"
-                  (click)="requestDelete(file, $event)"
-                  aria-label="Delete file"
-                  title="Delete file"
-                >
-                  🗑
-                </button>
+                <div class="item-actions">
+                  <button
+                    type="button"
+                    class="item-action"
+                    (click)="downloadFile(file, $event)"
+                    [disabled]="downloadingFileId() === file.id"
+                    aria-label="Download file"
+                    title="Download file"
+                  >
+                    ⬇
+                  </button>
+                  <button
+                    type="button"
+                    class="file-delete"
+                    (click)="requestDeleteFile(file, $event)"
+                    aria-label="Delete file"
+                    title="Delete file"
+                  >
+                    🗑
+                  </button>
+                </div>
               }
             </li>
           }

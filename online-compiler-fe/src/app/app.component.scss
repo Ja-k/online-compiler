@@ -4,7 +4,7 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
-  padding: 28px 20px 0;
+  padding: 20px 20px 16px;
 
   h1 {
     grid-column: 2;
@@ -109,26 +109,13 @@
   }
 }
 
-.app-subheader {
-  text-align: center;
-  margin-top: 8px;
-  margin-bottom: 20px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
 @media (max-width: 860px) {
   .app-header {
-    padding-top: 20px;
+    padding: 16px 16px 12px;
 
     h1 {
       font-size: 1.5rem;
     }
-  }
-
-  .app-subheader {
-    padding: 0 16px;
-    font-size: 0.85rem;
   }
 }
 

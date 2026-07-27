@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.online_compiler.online_compiler_be.model.dto.SavedFileRequestDto;
 import com.online_compiler.online_compiler_be.model.dto.SavedFileResponseDto;
+import com.online_compiler.online_compiler_be.model.entity.Folder;
 import com.online_compiler.online_compiler_be.model.entity.SavedFile;
+import com.online_compiler.online_compiler_be.repository.FolderRepository;
 import com.online_compiler.online_compiler_be.repository.SavedFileRepository;
 import com.online_compiler.online_compiler_be.repository.UserRepository;
 import com.online_compiler.online_compiler_be.security.AppUserPrincipal;
@@ -28,10 +30,13 @@ import com.online_compiler.online_compiler_be.security.AppUserPrincipal;
 public class SavedFileController {
 
 	private final SavedFileRepository savedFileRepository;
+	private final FolderRepository folderRepository;
 	private final UserRepository userRepository;
 
-	public SavedFileController(SavedFileRepository savedFileRepository, UserRepository userRepository) {
+	public SavedFileController(SavedFileRepository savedFileRepository, FolderRepository folderRepository,
+			UserRepository userRepository) {
 		this.savedFileRepository = savedFileRepository;
+		this.folderRepository = folderRepository;
 		this.userRepository = userRepository;
 	}
 
@@ -53,14 +58,19 @@ public class SavedFileController {
 	public ResponseEntity<?> createFile(@RequestBody @Valid SavedFileRequestDto request,
 			@AuthenticationPrincipal AppUserPrincipal principal) {
 		String filename = request.filename().trim();
-		if (savedFileRepository.existsByUserIdAndFilenameIgnoreCase(principal.getId(), filename)) {
+		Folder folder = resolveOwnedFolder(request.folderId(), principal.getId());
+		if (request.folderId() != null && folder == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Folder not found.");
+		}
+		if (filenameExistsInFolder(principal.getId(), folder, filename)) {
 			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body("A file named '" + filename + "' already exists. Choose another name.");
+					.body("A file named '" + filename + "' already exists in this folder. Choose another name.");
 		}
 
 		SavedFile file = new SavedFile();
 		// getReferenceById avoids an extra SELECT; we only need the id to satisfy the FK.
 		file.setUser(userRepository.getReferenceById(principal.getId()));
+		file.setFolder(folder);
 		file.setFilename(filename);
 		file.setLanguage(request.language());
 		file.setVersion(request.version());
@@ -74,13 +84,23 @@ public class SavedFileController {
 	public ResponseEntity<?> updateFile(@PathVariable Long id, @RequestBody @Valid SavedFileRequestDto request,
 			@AuthenticationPrincipal AppUserPrincipal principal) {
 		return savedFileRepository.findByIdAndUserId(id, principal.getId())
-				.map(file -> {
+				.<ResponseEntity<?>>map(file -> {
 					String filename = request.filename().trim();
-					if (!filename.equalsIgnoreCase(file.getFilename())
-							&& savedFileRepository.existsByUserIdAndFilenameIgnoreCase(principal.getId(), filename)) {
-						return ResponseEntity.status(HttpStatus.CONFLICT)
-								.body("A file named '" + filename + "' already exists. Choose another name.");
+					Folder folder = resolveOwnedFolder(request.folderId(), principal.getId());
+					if (request.folderId() != null && folder == null) {
+						return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Folder not found.");
 					}
+
+					Long currentFolderId = file.getFolder() == null ? null : file.getFolder().getId();
+					Long targetFolderId = folder == null ? null : folder.getId();
+					boolean movingOrRenaming = !filename.equalsIgnoreCase(file.getFilename())
+							|| (currentFolderId == null ? targetFolderId != null : !currentFolderId.equals(targetFolderId));
+					if (movingOrRenaming && filenameExistsInFolder(principal.getId(), folder, filename)) {
+						return ResponseEntity.status(HttpStatus.CONFLICT)
+								.body("A file named '" + filename + "' already exists in this folder. Choose another name.");
+					}
+
+					file.setFolder(folder);
 					file.setFilename(filename);
 					file.setLanguage(request.language());
 					file.setVersion(request.version());
@@ -99,5 +119,19 @@ public class SavedFileController {
 					return ResponseEntity.noContent().<Void>build();
 				})
 				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+	}
+
+	private Folder resolveOwnedFolder(Long folderId, Long userId) {
+		if (folderId == null) {
+			return null;
+		}
+		return folderRepository.findByIdAndUserId(folderId, userId).orElse(null);
+	}
+
+	private boolean filenameExistsInFolder(Long userId, Folder folder, String filename) {
+		if (folder == null) {
+			return savedFileRepository.existsByUserIdAndFolderIsNullAndFilenameIgnoreCase(userId, filename);
+		}
+		return savedFileRepository.existsByUserIdAndFolderIdAndFilenameIgnoreCase(userId, folder.getId(), filename);
 	}
 }

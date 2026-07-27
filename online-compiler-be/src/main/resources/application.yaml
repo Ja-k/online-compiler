@@ -14,7 +14,7 @@ server:
 logging:
   level:
     root: INFO
-    com.online-compiler.online-compiler-be: DEBUG
+    com.online_compiler.online_compiler_be: DEBUG
   file:
     name: ../logs/online-compiler.log
   pattern:
@@ -26,13 +26,15 @@ spring:
   datasource:
     # createDatabaseIfNotExist provisions the `online_compiler` schema on first
     # connection so no manual `CREATE DATABASE` step is needed for local dev.
-    url: jdbc:mysql://localhost:3306/online_compiler?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    # DB_HOST/DB_PORT let a containerized backend point at a sibling MySQL
+    # container (e.g. -e DB_HOST=online-compiler-mysql) instead of localhost.
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/online_compiler?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: false
-    show-sql: false
+    show-sql: true
     hibernate:
       # No migration tool (Flyway/Liquibase) is set up yet, so Hibernate
       # manages the `users` / `saved_files` tables directly from the entities.
@@ -44,19 +46,38 @@ spring:
     # Points at a local Mailpit container for dev (no real SMTP provider
     # needed): docker run -d --name compiler-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit
     # Web UI to view "sent" emails: http://localhost:8025
-    host: localhost
-    port: 1025
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
     properties:
       mail:
         smtp:
           auth: false
           starttls:
             enable: false
+  data:
+    redis:
+      # docker run -d --name compiler-redis -p 6379:6379 redis:7-alpine
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 app:
   # Base URL of the frontend, used to build links inside verification emails.
-  frontend-base-url: http://localhost:4200
+  frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:4200}
+  rate-limit:
+    # Token-bucket limits per client IP. capacity = burst size allowed
+    # back-to-back; refill-per-minute = sustained rate afterwards.
+    run:
+      capacity: 10
+      refill-per-minute: 10
+    auth:
+      capacity: 20
+      refill-per-minute: 20
   mail:
     from: no-reply@online-compiler.local
   auth:
     verification-token-validity-hours: 24
+  cache:
+    code-execution:
+      # How long an identical (language, version, code) result is served
+      # from Redis before it's recomputed by actually running the code again.
+      ttl-hours: 24

@@ -1,0 +1,100 @@
+# Full local stack for Online Compiler.
+#
+# Usage (from this repo root):
+#   docker compose up --build
+#
+# Then open:
+#   Frontend:          http://localhost:8080
+#   Backend (direct):  http://localhost:9191
+#   Mailpit UI:        http://localhost:8025
+#
+# If you already have standalone mysql/redis/mailpit containers on the same
+# host ports (3306 / 6379 / 1025 / 8025), stop them first:
+#   docker stop online-compiler-mysql compiler-redis compiler-mailpit
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: online-compiler-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: online_compiler
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    container_name: compiler-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: compiler-mailpit
+    ports:
+      - "1025:1025"   # SMTP (backend sends verification emails here)
+      - "8025:8025"   # Web UI to inspect those emails
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8025"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./online-compiler-be
+    image: online-compiler-be:local
+    container_name: online-compiler-be
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      # Links inside verification emails must be reachable from the user's browser.
+      FRONTEND_BASE_URL: http://localhost:8080
+      # Avoid writing a log file into a non-existent ../logs path inside the container.
+      LOGGING_FILE_NAME: /tmp/online-compiler.log
+    ports:
+      - "9191:9191"
+    # Sibling-containers pattern: the backend shells out to `docker` to compile
+    # and run submissions, talking to the HOST daemon through this socket.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  frontend:
+    build:
+      context: ./online-compiler-fe
+    image: online-compiler-fe:local
+    container_name: online-compiler-fe
+    depends_on:
+      - backend
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 9191
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql-data:

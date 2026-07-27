@@ -62,6 +62,10 @@ run_case "Java - compile error returns 400" \
 	"java" "17" 'public class Main { this is not valid java }' \
 	"400" "error"
 
+run_case "C - hello world" \
+	"c" "17" '#include <stdio.h>\nint main() { printf(\"Hello from C!\\n\"); return 0; }' \
+	"200" "Hello from C!"
+
 run_case "C++ - hello world" \
 	"cpp" "17" '#include <iostream>\nint main() { std::cout << \"Hello from C++!\" << std::endl; return 0; }' \
 	"200" "Hello from C++!"
@@ -77,6 +81,14 @@ run_case "Rust - hello world" \
 run_case "Go - hello world" \
 	"go" "1.22" 'package main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello from Go!\")\n}' \
 	"200" "Hello from Go!"
+
+run_case "C# - hello world" \
+	"csharp" "8.0" 'Console.WriteLine(\"Hello from C#!\");' \
+	"200" "Hello from C#!"
+
+run_case "C# - compile error returns 400" \
+	"csharp" "8.0" 'Console.WriteLine(\"missing paren\"' \
+	"400" "error"
 
 run_case "Unsupported language returns 400" \
 	"cobol" "1" 'whatever' \

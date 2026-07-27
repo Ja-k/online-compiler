@@ -14,13 +14,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
+/**
+ * Uniqueness of {@code filename} within a folder (or at root when
+ * {@code folder} is null) is enforced in {@code SavedFileController}, not via
+ * a DB unique constraint: MySQL treats each NULL {@code folder_id} as
+ * distinct in a unique index, so a (user_id, folder_id, filename) constraint
+ * would not reliably block duplicate root-level names.
+ */
 @Entity
-@Table(name = "saved_files", uniqueConstraints = {
-		// A user can't have two files with the same name.
-		@UniqueConstraint(name = "uk_saved_files_user_filename", columnNames = { "user_id", "filename" })
-})
+@Table(name = "saved_files")
 public class SavedFile {
 
 	@Id
@@ -30,6 +33,13 @@ public class SavedFile {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
+
+	/** Null means the file lives at the root (not inside any folder). Eager so
+	 * list/detail DTOs can always read {@code folderId} without an open
+	 * persistence context (open-in-view is disabled). */
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "folder_id")
+	private Folder folder;
 
 	@Column(nullable = false, length = 120)
 	private String filename;
@@ -75,6 +85,14 @@ public class SavedFile {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public Folder getFolder() {
+		return folder;
+	}
+
+	public void setFolder(Folder folder) {
+		this.folder = folder;
 	}
 
 	public String getFilename() {

@@ -10,6 +10,7 @@ export interface SaveFileRequest {
   language: string;
   version: string;
   code: string;
+  folderId: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -51,6 +52,11 @@ export class SavedFilesService {
         },
         error: () => this._isLoading.set(false)
       });
+  }
+
+  /** Removes every local file that belonged to a deleted folder. */
+  removeFilesInFolder(folderId: number): void {
+    this._files.set(this._files().filter((f) => f.folderId !== folderId));
   }
 
   getFile(id: number): Observable<SavedFile> {

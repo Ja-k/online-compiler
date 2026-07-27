@@ -13,7 +13,9 @@ public interface SavedFileRepository extends JpaRepository<SavedFile, Long> {
 
 	Optional<SavedFile> findByIdAndUserId(Long id, Long userId);
 
-	boolean existsByUserIdAndFilenameIgnoreCase(Long userId, String filename);
+	boolean existsByUserIdAndFolderIdAndFilenameIgnoreCase(Long userId, Long folderId, String filename);
 
-	Optional<SavedFile> findByUserIdAndFilenameIgnoreCase(Long userId, String filename);
+	boolean existsByUserIdAndFolderIsNullAndFilenameIgnoreCase(Long userId, String filename);
+
+	void deleteByUserIdAndFolderId(Long userId, Long folderId);
 }

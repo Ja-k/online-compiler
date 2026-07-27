@@ -5,10 +5,12 @@ import { Router } from '@angular/router';
 
 import { CodeExecutionService } from '../services/code-execution.service';
 import { EditorStateService } from '../services/editor-state.service';
-import { AuthService } from '../services/auth.service';
+import { AuthApiError, AuthService } from '../services/auth.service';
 import { SavedFilesService } from '../services/saved-files.service';
-import { LanguageOption } from '../models/language-option';
+import { FoldersService } from '../services/folders.service';
+import { ensureFileExtension, LanguageOption } from '../models/language-option';
 import { TECH_VIBE_THEME_NAME } from '../monaco-theme';
+import { downloadTextFile } from '../utils/download-text-file';
 
 @Component({
   selector: 'app-text-editor-component',
@@ -26,14 +28,26 @@ export class TextEditorComponentComponent {
 
   readonly isSaveDialogOpen = signal(false);
   saveFilenameInput = '';
+  /** null = save at root; otherwise the selected folder id. Bound as string for the select. */
+  saveFolderIdValue: string = '';
   readonly saveError = signal<string | null>(null);
   readonly isSaving = signal(false);
+
+  readonly isLoginDialogOpen = signal(false);
+  loginUsername = '';
+  loginPassword = '';
+  readonly isLoggingIn = signal(false);
+  readonly loginError = signal<string | null>(null);
+  readonly needsVerification = signal(false);
+  readonly isResending = signal(false);
+  readonly resendMessage = signal<string | null>(null);
 
   constructor(
     private readonly codeExecutionService: CodeExecutionService,
     protected readonly editorState: EditorStateService,
     protected readonly authService: AuthService,
     private readonly savedFilesService: SavedFilesService,
+    protected readonly foldersService: FoldersService,
     private readonly router: Router
   ) {
     this.editorOptions = {
@@ -74,7 +88,7 @@ export class TextEditorComponentComponent {
   }
 
   set selectedVersion(version: string) {
-    this.editorState.selectedVersion.set(version);
+    this.editorState.setVersion(version);
   }
 
   get code(): string {
@@ -87,6 +101,21 @@ export class TextEditorComponentComponent {
 
   get currentFileName(): string | null {
     return this.editorState.currentFileName();
+  }
+
+  closeOpenFile(): void {
+    this.editorState.closeOpenFile();
+  }
+
+  /**
+   * Downloads whatever is currently in the editor, entirely client-side, so
+   * this works even for unsaved code or while logged out. Uses the open
+   * file's name if there is one, otherwise a generic "Main.<ext>" name.
+   */
+  onDownloadClick(): void {
+    const rawFilename = this.currentFileName ?? `Main.${this.selectedLanguage.fileExtension}`;
+    const filename = ensureFileExtension(rawFilename, this.selectedLanguage);
+    downloadTextFile(filename, this.code);
   }
 
   runCode(): void {
@@ -103,16 +132,88 @@ export class TextEditorComponentComponent {
 
   onSaveClick(): void {
     if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/login']);
+      this.openLoginDialog();
       return;
     }
+    this.openSaveDialog();
+  }
+
+  openSaveDialog(): void {
     this.saveFilenameInput = this.editorState.currentFileName() ?? '';
+    const folderId = this.editorState.currentFolderId();
+    this.saveFolderIdValue = folderId === null ? '' : String(folderId);
     this.saveError.set(null);
+    this.foldersService.refresh();
     this.isSaveDialogOpen.set(true);
   }
 
   closeSaveDialog(): void {
     this.isSaveDialogOpen.set(false);
+  }
+
+  openLoginDialog(): void {
+    this.loginUsername = '';
+    this.loginPassword = '';
+    this.loginError.set(null);
+    this.needsVerification.set(false);
+    this.resendMessage.set(null);
+    this.isLoginDialogOpen.set(true);
+  }
+
+  closeLoginDialog(): void {
+    this.isLoginDialogOpen.set(false);
+  }
+
+  onLoginSubmit(): void {
+    if (!this.loginUsername.trim() || !this.loginPassword) {
+      this.loginError.set('Please enter your username and password.');
+      return;
+    }
+
+    this.isLoggingIn.set(true);
+    this.loginError.set(null);
+    this.needsVerification.set(false);
+    this.resendMessage.set(null);
+
+    this.authService.login({ username: this.loginUsername.trim(), password: this.loginPassword }).subscribe({
+      next: () => {
+        this.isLoggingIn.set(false);
+        this.isLoginDialogOpen.set(false);
+        // Continue the save flow the user started before being asked to log in.
+        this.openSaveDialog();
+      },
+      error: (error: AuthApiError) => {
+        this.isLoggingIn.set(false);
+        this.loginError.set(error.message);
+        this.needsVerification.set(error.code === 'EMAIL_NOT_VERIFIED');
+      }
+    });
+  }
+
+  onResendVerificationClick(): void {
+    const usernameOrEmail = this.loginUsername.trim();
+    if (!usernameOrEmail || this.isResending()) {
+      return;
+    }
+
+    this.isResending.set(true);
+    this.resendMessage.set(null);
+
+    this.authService.resendVerification(usernameOrEmail).subscribe({
+      next: (response) => {
+        this.isResending.set(false);
+        this.resendMessage.set(response.message);
+      },
+      error: (error: AuthApiError) => {
+        this.isResending.set(false);
+        this.resendMessage.set(error.message);
+      }
+    });
+  }
+
+  goToRegister(): void {
+    this.closeLoginDialog();
+    this.router.navigate(['/register']);
   }
 
   confirmSave(): void {
@@ -125,11 +226,13 @@ export class TextEditorComponentComponent {
     this.isSaving.set(true);
     this.saveError.set(null);
 
+    const folderId = this.saveFolderIdValue === '' ? null : Number(this.saveFolderIdValue);
     const request = {
       filename,
       language: this.selectedLanguage.id,
       version: this.selectedVersion,
-      code: this.code
+      code: this.code,
+      folderId
     };
 
     const currentId = this.editorState.currentFileId();
@@ -141,7 +244,7 @@ export class TextEditorComponentComponent {
 
     save$.subscribe({
       next: (file) => {
-        this.editorState.markSavedAs(file.id, file.filename);
+        this.editorState.markSavedAs(file.id, file.filename, file.folderId);
         this.isSaving.set(false);
         this.isSaveDialogOpen.set(false);
       },

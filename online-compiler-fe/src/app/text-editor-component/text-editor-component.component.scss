@@ -60,17 +60,51 @@
 }
 
 .current-file-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--text-muted);
   background-color: var(--bg-surface-alt);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 5px 9px;
+  padding: 3px 4px 3px 9px;
+  max-width: 220px;
+}
+
+.current-file-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  min-width: 0;
+}
+
+.current-file-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .toolbar-actions {
@@ -79,7 +113,8 @@
   gap: 8px;
 }
 
-.save-button {
+.save-button,
+.download-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -144,7 +179,7 @@
 }
 
 .editor-container {
-  height: 60vh;
+  height: 72vh;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -155,7 +190,8 @@
   }
 }
 
-.save-dialog-backdrop {
+.save-dialog-backdrop,
+.modal-backdrop {
   position: fixed;
   inset: 0;
   background-color: rgba(5, 8, 15, 0.65);
@@ -166,7 +202,8 @@
   padding: 16px;
 }
 
-.save-dialog {
+.save-dialog,
+.modal-dialog {
   width: 100%;
   max-width: 360px;
   background-color: var(--bg-surface);
@@ -176,10 +213,94 @@
   box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.7);
 
   h3 {
-    margin: 0 0 14px;
+    margin: 0;
     font-family: var(--font-display);
     font-size: 1.1rem;
     color: var(--text-primary);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+}
+
+.login-dialog {
+  max-width: 380px;
+
+  .save-dialog-input {
+    margin-bottom: 12px;
+  }
+}
+
+.login-dialog-subtitle {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.login-dialog-info {
+  color: var(--accent);
+  font-size: 0.8rem;
+  margin: 0 0 12px;
+}
+
+.login-dialog-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.login-dialog-secondary {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.login-dialog-switch {
+  text-align: center;
+  margin: 16px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.login-dialog-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 
@@ -199,17 +320,26 @@
   border: 1px solid var(--border-color);
   border-radius: 5px;
   padding: 9px 10px;
+  margin-bottom: 12px;
 
   &:focus {
     outline: none;
     border-color: var(--accent);
   }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.save-dialog-select {
+  cursor: pointer;
 }
 
 .save-dialog-error {
   color: #f87171;
   font-size: 0.8rem;
-  margin: 10px 0 0;
+  margin: 0 0 12px;
 }
 
 .save-dialog-actions {
@@ -232,6 +362,11 @@
   &:hover:not(:disabled) {
     color: var(--text-primary);
     border-color: var(--text-muted);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 }
 
@@ -258,7 +393,7 @@
 
 @media (max-width: 860px) {
   .editor-container {
-    height: 45vh;
+    height: 55vh;
   }
 }
 
@@ -288,6 +423,7 @@
   }
 
   .save-button,
+  .download-button,
   .run-button {
     flex: 1;
     justify-content: center;

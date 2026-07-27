@@ -10,17 +10,22 @@ public record SavedFileResponseDto(
 		String language,
 		String version,
 		String code,
+		Long folderId,
 		Instant createdAt,
 		Instant updatedAt) {
 
 	public static SavedFileResponseDto from(SavedFile file) {
 		return new SavedFileResponseDto(file.getId(), file.getFilename(), file.getLanguage(), file.getVersion(),
-				file.getCode(), file.getCreatedAt(), file.getUpdatedAt());
+				file.getCode(), folderIdOf(file), file.getCreatedAt(), file.getUpdatedAt());
 	}
 
 	/** Lighter-weight view for list endpoints: omits the (potentially large) source code. */
 	public static SavedFileResponseDto summaryFrom(SavedFile file) {
 		return new SavedFileResponseDto(file.getId(), file.getFilename(), file.getLanguage(), file.getVersion(),
-				null, file.getCreatedAt(), file.getUpdatedAt());
+				null, folderIdOf(file), file.getCreatedAt(), file.getUpdatedAt());
+	}
+
+	private static Long folderIdOf(SavedFile file) {
+		return file.getFolder() == null ? null : file.getFolder().getId();
 	}
 }

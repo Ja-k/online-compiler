@@ -38,12 +38,32 @@ export class CodeExecutionService {
   }
 
   private extractErrorMessage(error: HttpErrorResponse): string {
+    // Most /v1/run errors are plain text (see CodeExecutionController), but
+    // the rate limiter returns a structured {code, message} JSON body like
+    // the auth endpoints do. Since this request uses responseType: 'text',
+    // Angular never parses the body for us even on error - it stays a raw
+    // string - so a JSON body arrives here as literal '{"code":...}' text
+    // that needs parsing ourselves.
     if (typeof error.error === 'string' && error.error.trim().length > 0) {
-      return error.error;
+      const jsonMessage = this.tryExtractJsonMessage(error.error);
+      return jsonMessage ?? error.error;
     }
     if (error.status === 0) {
       return 'Could not reach the compiler service. Please make sure the backend is running.';
     }
     return `Execution failed (HTTP ${error.status}). Please try again.`;
+  }
+
+  private tryExtractJsonMessage(rawBody: string): string | null {
+    const trimmed = rawBody.trim();
+    if (!trimmed.startsWith('{')) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(trimmed) as { message?: string };
+      return typeof parsed.message === 'string' && parsed.message.trim().length > 0 ? parsed.message : null;
+    } catch {
+      return null;
+    }
   }
 }

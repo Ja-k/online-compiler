@@ -50,7 +50,7 @@ public class SecurityConfig {
 						.requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/verify-email",
 								"/v1/auth/resend-verification", "/v1/run").permitAll()
 						.requestMatchers("/v1/auth/me", "/v1/auth/logout").authenticated()
-						.requestMatchers("/v1/files/**").authenticated()
+						.requestMatchers("/v1/files/**", "/v1/folders/**").authenticated()
 						.anyRequest().permitAll())
 				.exceptionHandling(handling -> handling
 						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
