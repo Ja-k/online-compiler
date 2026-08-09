@@ -20,8 +20,8 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--accent);
-  background-color: rgba(34, 211, 238, 0.1);
-  border: 1px solid rgba(34, 211, 238, 0.3);
+  background-color: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: 4px;
   padding: 5px 10px;
   cursor: pointer;
@@ -98,7 +98,7 @@
 
   &:hover:not(:disabled) {
     color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--surface-hover);
   }
 
   &:disabled {
@@ -154,11 +154,11 @@
   padding: 8px 18px;
   cursor: pointer;
   transition: filter 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
+  box-shadow: 0 0 16px var(--title-glow);
 
   &:hover:not(:disabled) {
     filter: brightness(1.08);
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 20px var(--title-glow);
   }
 
   &:disabled {
@@ -194,7 +194,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(5, 8, 15, 0.65);
+  background-color: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,7 +210,7 @@
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 50px -12px var(--shadow-strong);
 
   h3 {
     margin: 0;
@@ -248,7 +248,7 @@
   &:hover {
     color: var(--text-primary);
     border-color: var(--text-muted);
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: var(--surface-hover);
   }
 }
 
@@ -337,7 +337,7 @@
 }
 
 .save-dialog-error {
-  color: #f87171;
+  color: var(--danger);
   font-size: 0.8rem;
   margin: 0 0 12px;
 }

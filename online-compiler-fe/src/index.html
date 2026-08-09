@@ -12,6 +12,20 @@
     href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet"
   >
+  <!-- Apply saved / system theme before Angular boots to avoid a flash of the wrong palette. -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('online-compiler-theme');
+        var mode = stored === 'light' || stored === 'dark'
+          ? stored
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', mode);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

@@ -19,6 +19,19 @@
   <h1>Online Compiler</h1>
 
   <div class="auth-controls">
+    <button
+      type="button"
+      class="theme-toggle"
+      (click)="onThemeToggle()"
+      [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+      [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+    >
+      @if (themeService.isDark()) {
+        <span aria-hidden="true">☀</span>
+      } @else {
+        <span aria-hidden="true">☾</span>
+      }
+    </button>
     @if (authService.isAuthenticated()) {
       <span class="username">{{ authService.currentUser()?.username }}</span>
       <button type="button" class="auth-link logout-link" (click)="onLogoutClick()">Logout</button>

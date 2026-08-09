@@ -1,7 +1,7 @@
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(5, 8, 15, 0.6);
+  background-color: var(--overlay);
   z-index: 200;
   display: flex;
 }
@@ -12,7 +12,7 @@
   height: 100%;
   background-color: var(--bg-surface);
   border-right: 1px solid var(--border-color);
-  box-shadow: 12px 0 40px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: 12px 0 40px -12px var(--shadow-strong);
   padding: 20px;
   overflow-y: auto;
   animation: slide-in 0.18s ease-out;
@@ -103,7 +103,7 @@
 }
 
 .drawer-error {
-  color: #f87171;
+  color: var(--danger);
   font-size: 0.82rem;
   margin-bottom: 12px;
 }
@@ -217,8 +217,8 @@
 }
 
 .file-delete:hover {
-  color: #f87171;
-  border-color: #f87171;
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .file-delete-confirm {
@@ -238,8 +238,8 @@
 }
 
 .confirm-yes {
-  background-color: #f87171;
-  color: #1a0505;
+  background-color: var(--danger);
+  color: #fff;
   font-weight: 700;
 }
 

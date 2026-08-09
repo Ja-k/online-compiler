@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
-:root {
+:root,
+[data-theme='dark'] {
   --font-display: 'Orbitron', sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
 
@@ -12,6 +13,49 @@
   --text-muted: #8b9bc4;
   --accent: #22d3ee;
   --accent-strong: #38bdf8;
+  --accent-soft: rgba(34, 211, 238, 0.1);
+  --title-tail: #a78bfa;
+  --title-glow: rgba(34, 211, 238, 0.25);
+  --overlay: rgba(5, 8, 15, 0.65);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
+  --output-text: #d4d4d4;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --danger-border: rgba(248, 113, 113, 0.3);
+  --warn: #eab308;
+  --warn-soft: rgba(234, 179, 8, 0.12);
+  --warn-border: rgba(234, 179, 8, 0.3);
+  --bg-glow: #16213e;
+  --bg-deep: #0d1220;
+  --cta-text: #05131b;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='light'] {
+  --bg-base: #eef2f7;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #f4f7fb;
+  --border-color: #c8d4e3;
+  --text-primary: #1a2333;
+  --text-muted: #5a6b82;
+  --accent: #0e8fa8;
+  --accent-strong: #0b7a99;
+  --accent-soft: rgba(14, 143, 168, 0.1);
+  --title-tail: #5b6abf;
+  --title-glow: rgba(14, 143, 168, 0.18);
+  --overlay: rgba(26, 35, 51, 0.4);
+  --shadow-strong: rgba(26, 35, 51, 0.18);
+  --output-text: #2a3548;
+  --danger: #c23b3b;
+  --danger-soft: rgba(194, 59, 59, 0.1);
+  --danger-border: rgba(194, 59, 59, 0.3);
+  --warn: #a67c00;
+  --warn-soft: rgba(166, 124, 0, 0.1);
+  --warn-border: rgba(166, 124, 0, 0.3);
+  --bg-glow: #dce6f2;
+  --bg-deep: #e4ebf4;
+  --cta-text: #ffffff;
+  --surface-hover: rgba(14, 143, 168, 0.06);
 }
 
 * {
@@ -27,8 +71,9 @@ body {
 body {
   font-family: var(--font-mono);
   color: var(--text-primary);
-  background: radial-gradient(circle at 15% 0%, #16213e 0%, var(--bg-base) 45%),
-    linear-gradient(180deg, var(--bg-base) 0%, #0d1220 100%);
+  background: radial-gradient(circle at 15% 0%, var(--bg-glow) 0%, var(--bg-base) 45%),
+    linear-gradient(180deg, var(--bg-base) 0%, var(--bg-deep) 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  transition: color 0.2s ease, background 0.2s ease;
 }

@@ -9,7 +9,8 @@ import { AuthApiError, AuthService } from '../services/auth.service';
 import { SavedFilesService } from '../services/saved-files.service';
 import { FoldersService } from '../services/folders.service';
 import { ensureFileExtension, LanguageOption } from '../models/language-option';
-import { TECH_VIBE_THEME_NAME } from '../monaco-theme';
+import { monacoThemeForMode } from '../monaco-theme';
+import { ThemeService } from '../services/theme.service';
 import { downloadTextFile } from '../utils/download-text-file';
 
 @Component({
@@ -48,21 +49,27 @@ export class TextEditorComponentComponent {
     protected readonly authService: AuthService,
     private readonly savedFilesService: SavedFilesService,
     protected readonly foldersService: FoldersService,
+    private readonly themeService: ThemeService,
     private readonly router: Router
   ) {
     this.editorOptions = {
-      theme: TECH_VIBE_THEME_NAME,
+      theme: monacoThemeForMode(this.themeService.mode()),
       language: this.editorState.selectedLanguage().monacoLanguage,
       automaticLayout: true
     };
 
-    // Keeps Monaco's tokenizer in sync with the selected language no matter
-    // where the change comes from (the dropdown, or loading a saved file via
-    // the drawer, which updates editorState directly without going through
-    // the dropdown's setter below).
+    // Keeps Monaco's tokenizer and theme in sync with language / dark-light
+    // mode no matter where the change comes from (dropdown, drawer load, or
+    // the header theme toggle).
     effect(() => {
       const language = this.editorState.selectedLanguage().monacoLanguage;
-      this.editorOptions = { ...this.editorOptions, language };
+      const theme = monacoThemeForMode(this.themeService.mode());
+      this.editorOptions = { ...this.editorOptions, language, theme };
+
+      // ngx-monaco-editor may not re-apply theme from [options] after the
+      // editor has already been created, so set it explicitly too.
+      const monaco = (window as unknown as { monaco?: { editor?: { setTheme?: (name: string) => void } } }).monaco;
+      monaco?.editor?.setTheme?.(theme);
     });
   }
 
